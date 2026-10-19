@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: heart-disease-config
+  namespace: mlops
+data:
+  APP_ENV: "production"

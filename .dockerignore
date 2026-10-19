@@ -1,0 +1,10 @@
+.git
+__pycache__
+.pytest_cache
+.venv
+mlruns
+artifacts
+screenshots
+data/raw
+.github
+notebooks/.ipynb_checkpoints

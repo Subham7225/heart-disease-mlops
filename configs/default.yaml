@@ -1,0 +1,14 @@
+random_state: 42
+test_size: 0.2
+target_column: target
+tracking_uri: file:./mlruns
+experiment_name: heart-disease-classification
+artifacts_dir: artifacts
+models:
+  logistic_regression:
+    C: 1.0
+    max_iter: 2000
+  random_forest:
+    n_estimators: 300
+    max_depth: 8
+    min_samples_split: 4
