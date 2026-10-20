@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from typing import Any
+
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score
+
 
 def evaluate_binary_classifier(y_true, y_pred, y_proba) -> dict[str, Any]:
     return {

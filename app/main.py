@@ -5,10 +5,10 @@ import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-from starlette.responses import Response
 from pythonjsonlogger.json import JsonFormatter
+from starlette.responses import Response
 
 from src.inference import load_model, predict_payload
 
@@ -20,6 +20,7 @@ logger.setLevel(logging.INFO)
 
 REQUEST_COUNT = Counter("api_requests_total", "Total API requests", ["method", "endpoint", "status"])
 REQUEST_LATENCY = Histogram("api_request_latency_seconds", "API latency", ["method", "endpoint"])
+PREDICTIONS = Counter("model_predictions_total", "Predictions served by predicted label", ["label"])
 model = None
 
 class PredictionRequest(BaseModel):
@@ -82,7 +83,10 @@ def health(response: Response) -> dict:
 def predict(payload: PredictionRequest) -> dict:
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    return predict_payload(model, payload.model_dump())
+    result = predict_payload(model, payload.model_dump())
+    PREDICTIONS.labels(result["label"]).inc()
+    logger.info({"event": "prediction", "label": result["label"], "confidence": round(result["confidence"], 4)})
+    return result
 
 @app.get("/metrics")
 def metrics() -> Response:

@@ -4,11 +4,17 @@ target_column: target
 tracking_uri: file:./mlruns
 experiment_name: heart-disease-classification
 artifacts_dir: artifacts
+cv_folds: 5
+selection_metric: roc_auc
+# Hyper-parameter grids searched with GridSearchCV (stratified 5-fold).
 models:
   logistic_regression:
-    C: 1.0
-    max_iter: 2000
+    C: [0.01, 0.1, 1.0, 10.0]
+    penalty: [l2]
+    solver: [lbfgs]
+    max_iter: [2000]
   random_forest:
-    n_estimators: 300
-    max_depth: 8
-    min_samples_split: 4
+    n_estimators: [200, 400]
+    max_depth: [4, 6, 8]
+    min_samples_split: [2, 4]
+    min_samples_leaf: [1, 2]

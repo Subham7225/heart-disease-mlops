@@ -1,14 +1,19 @@
+# LoadBalancer service. On Docker Desktop Kubernetes the load balancer is
+# published on localhost, so the API is reachable at http://localhost:8080.
+# On GKE/EKS/AKS the same manifest provisions a cloud load balancer.
 apiVersion: v1
 kind: Service
 metadata:
   name: heart-disease-api
   namespace: mlops
+  labels:
+    app: heart-disease-api
 spec:
+  type: LoadBalancer
   selector:
     app: heart-disease-api
   ports:
-    - protocol: TCP
-      port: 80
+    - name: http
+      protocol: TCP
+      port: 8080
       targetPort: 8000
-      nodePort: 30080
-  type: NodePort

@@ -2,7 +2,8 @@
 __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
-mlruns/
-artifacts/
-data/raw/
 .ruff_cache/
+mlruns/
+mlflow.db
+anaconda_projects/
+.DS_Store
