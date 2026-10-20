@@ -1,92 +1,32 @@
-# MLOps Assignment Report
+# Heart Disease Risk Prediction - MLOps Assignment 01 (summary)
 
-## 1. Introduction
-This report presents an end-to-end MLOps workflow for heart disease risk prediction using the UCI Heart Disease dataset. The solution covers data ingestion, EDA, feature engineering, model training, experiment tracking, reproducible packaging, API serving, CI/CD, containerization, deployment, and monitoring.
+The full 14-page report with all screenshots is in [`final_report.docx`](final_report.docx) ([PDF](final_report.pdf)). This page is a short Markdown summary.
 
-## 2. Problem Statement
-The objective is to classify whether a patient is at risk of heart disease based on clinical features such as age, chest pain type, resting blood pressure, cholesterol, ECG results, and exercise-induced angina.
+- Repository: https://github.com/Subham7225/heart-disease-mlops
+- Dataset: UCI Heart Disease (Cleveland), 303 patients, 13 features, binary target (164 no disease / 139 disease)
 
-## 3. Dataset and Acquisition
-- Dataset: UCI Heart Disease dataset
-- Acquisition method: `python data/download_data.py`
-- Target variable: `target`
-- Input features: 13 structured clinical variables
+## Pipeline
+1. `data/download_data.py` downloads the data and writes raw + cleaned CSVs (only `ca` and `thal` have missing values, 6 cells in total).
+2. EDA in `notebooks/01_eda.ipynb` produces 6 figures in `reports/figures/`.
+3. Preprocessing is a single ColumnTransformer: median impute + scale for 5 continuous features, mode impute for 3 binary features, mode impute + one-hot for 5 categorical features (25 model features).
+4. `src/train.py` runs GridSearchCV (stratified 5-fold, ROC-AUC) for Logistic Regression (4 candidates) and Random Forest (24 candidates). All 30 runs are logged to MLflow with params, metrics, plots and the model.
+5. The best model (by hold-out ROC-AUC) is saved to `artifacts/model_pipeline.joblib`.
+6. CI runs ruff, training, 11 pytest tests, artifact upload, Docker build + smoke test, and a GHCR push.
+7. Serving: FastAPI in Docker, deployed to Docker Desktop Kubernetes (2 replicas, LoadBalancer on localhost:8080).
+8. Monitoring: JSON request logs, Prometheus `/metrics`, and a provisioned Grafana dashboard.
 
-## 4. EDA Summary
-Include the following screenshots and observations:
-- Class balance chart
-- Histograms for key numeric variables
-- Correlation heatmap
-- Missing value summary and data quality checks
+## Results (hold-out, n=61)
+| Model | Best params | CV ROC-AUC | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|---|---|---|---|---|---|---|---|
+| Logistic Regression (selected) | C=1.0 | 0.904 | 0.885 | 0.839 | 0.929 | 0.881 | 0.968 |
+| Random Forest | n_estimators=400, max_depth=4 | 0.897 | 0.885 | 0.839 | 0.929 | 0.881 | 0.950 |
 
-## 5. Preprocessing and Feature Engineering
-Describe:
-- Median imputation for numerical fields
-- Standard scaling
-- Unified preprocessing pipeline with scikit-learn `ColumnTransformer`
-- Reasons for keeping the feature set reproducible end to end
+## Evidence
+See `screenshots/`: MLflow (`mlflow_*.png`), CI (`github_actions_*.png`, `02_pytest.png`), Docker (`03_docker_build_run.png`), Kubernetes (`04_k8s_deploy_script.png`, `05_k8s_status.png`, `06_k8s_traffic_logs_metrics.png`), monitoring (`grafana_dashboard.png`, `prometheus_*.png`, `api_metrics_endpoint.png`).
 
-## 6. Model Development
-Models trained:
-- Logistic Regression
-- Random Forest
-
-Evaluation methodology:
-- Stratified train/test split
-- 5-fold cross-validation
-- Metrics: accuracy, precision, recall, F1, ROC-AUC
-
-Include final metrics table copied from `artifacts/metrics.json`.
-
-## 7. Experiment Tracking
-Document MLflow usage:
-- Parameters per run
-- Metrics per run
-- Model comparison
-- Saved artifacts and screenshots from MLflow UI
-
-## 8. Packaging and Reproducibility
-Include:
-- `requirements.txt`
-- `Dockerfile`
-- saved model pipeline in `artifacts/model_pipeline.joblib`
-- exact commands for training and inference
-
-## 9. API and Containerization
-Endpoints:
-- `GET /health`
-- `POST /predict`
-- `GET /metrics`
-
-Include sample request/response and local Docker run proof.
-
-## 10. CI/CD
-Summarize GitHub Actions workflow:
-- dependency installation
-- linting
-- dataset download
-- unit tests
-- training job
-- artifact upload
-
-Add screenshots of successful runs.
-
-## 11. Kubernetes Deployment
-Document:
-- namespace, deployment, service, ingress
-- replica count
-- health probes
-- exposure method
-- verification commands and screenshots
-
-## 12. Monitoring and Logging
-Show:
-- structured JSON request logs
-- Prometheus scrape configuration
-- sample metrics from `/metrics`
-
-## 13. Architecture
-Embed or convert the Mermaid architecture diagram from `reports/architecture.mmd`.
-
-## 14. Conclusion
-This project demonstrates a production-oriented MLOps implementation with reproducibility, experiment tracking, automated validation, containerized serving, Kubernetes deployment, and operational observability.
+## Local access instructions
+```bash
+./deployment/deploy_local.sh
+curl http://localhost:8080/health
+open http://localhost:8080/docs
+```

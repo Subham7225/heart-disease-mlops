@@ -56,14 +56,14 @@ def make_plots(name: str, pipeline: Pipeline, X_test, y_test, out_dir: Path) -> 
     fig, ax = plt.subplots(figsize=(5, 4))
     RocCurveDisplay.from_estimator(pipeline, X_test, y_test, ax=ax, name=name)
     ax.plot([0, 1], [0, 1], "--", color="grey")
-    ax.set_title(f"ROC curve - {name}")
+    ax.set_title(f"ROC curve - {name}", fontsize=11)
     paths.append(_save_fig(fig, out_dir / f"roc_{name}.png"))
 
-    fig, ax = plt.subplots(figsize=(4.5, 4))
+    fig, ax = plt.subplots(figsize=(5.2, 4.2))
     ConfusionMatrixDisplay.from_estimator(
         pipeline, X_test, y_test, ax=ax, cmap="Blues", display_labels=["no disease", "disease"]
     )
-    ax.set_title(f"Confusion matrix - {name}")
+    ax.set_title(f"Confusion matrix - {name}", fontsize=11)
     paths.append(_save_fig(fig, out_dir / f"confusion_{name}.png"))
 
     model = pipeline.named_steps["model"]
